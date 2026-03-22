@@ -1,0 +1,865 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Marriage Hall Booking</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        :root {
+            --primary: #b91c1c;
+            --primary-light: #dc2626;
+            --primary-dark: #991b1b;
+            --gold: #d97706;
+            --gold-light: #fbbf24;
+            --success: #16a34a;
+            --bg: #fef7ed;
+            --card: #ffffff;
+            --text: #1c1917;
+            --text-light: #78716c;
+            --border: #e7e5e4;
+        }
+
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+        }
+
+        /* Header */
+        .header {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: white;
+            padding: 1.2rem 1.5rem;
+            text-align: center;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 4px 20px rgba(185, 28, 28, 0.3);
+        }
+
+        .header h1 {
+            font-size: 1.4rem;
+            font-weight: 700;
+            margin-bottom: 0.2rem;
+        }
+
+        .header p {
+            font-size: 0.8rem;
+            opacity: 0.85;
+        }
+
+        /* Navigation Tabs */
+        .nav-tabs {
+            display: flex;
+            background: white;
+            border-bottom: 2px solid var(--border);
+            position: sticky;
+            top: 62px;
+            z-index: 99;
+        }
+
+        .nav-tab {
+            flex: 1;
+            padding: 0.85rem;
+            text-align: center;
+            border: none;
+            background: transparent;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            color: var(--text-light);
+            transition: all 0.2s;
+            border-bottom: 3px solid transparent;
+        }
+
+        .nav-tab.active {
+            color: var(--primary);
+            border-bottom-color: var(--primary);
+            background: #fef2f2;
+        }
+
+        .nav-tab span { display: block; font-size: 1.2rem; margin-bottom: 0.15rem; }
+
+        /* Pages */
+        .page { display: none; padding: 1rem; max-width: 600px; margin: 0 auto; }
+        .page.active { display: block; }
+
+        /* Cards */
+        .card {
+            background: var(--card);
+            border-radius: 16px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+            border: 1px solid var(--border);
+            margin-bottom: 1rem;
+            overflow: hidden;
+        }
+
+        .card-header {
+            padding: 1rem 1.2rem;
+            border-bottom: 1px solid var(--border);
+            font-weight: 700;
+            font-size: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .card-body { padding: 1.2rem; }
+
+        /* Form */
+        .form-group { margin-bottom: 1rem; }
+
+        .form-group label {
+            display: block;
+            font-size: 0.8rem;
+            font-weight: 700;
+            color: var(--text-light);
+            margin-bottom: 0.3rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            border: 2px solid var(--border);
+            border-radius: 12px;
+            font-size: 1rem;
+            font-family: inherit;
+            transition: all 0.2s;
+            background: white;
+            -webkit-appearance: none;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: var(--primary-light);
+            box-shadow: 0 0 0 3px rgba(185, 28, 28, 0.1);
+        }
+
+        textarea { resize: vertical; min-height: 60px; }
+
+        /* Hall Selector */
+        .hall-options {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.75rem;
+        }
+
+        .hall-option {
+            padding: 1rem;
+            border: 3px solid var(--border);
+            border-radius: 14px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .hall-option:hover { border-color: var(--gold); background: #fffbeb; }
+
+        .hall-option.selected {
+            border-color: var(--primary);
+            background: #fef2f2;
+        }
+
+        .hall-option .h-icon { font-size: 2rem; margin-bottom: 0.3rem; }
+        .hall-option .h-name { font-weight: 700; font-size: 0.9rem; }
+        .hall-option .h-info { font-size: 0.75rem; color: var(--text-light); margin-top: 0.15rem; }
+        .hall-option .h-price { font-size: 0.85rem; color: var(--gold); font-weight: 700; margin-top: 0.25rem; }
+
+        /* Time Slot */
+        .slot-options {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 0.5rem;
+        }
+
+        .slot-option {
+            padding: 0.6rem;
+            border: 2px solid var(--border);
+            border-radius: 10px;
+            text-align: center;
+            cursor: pointer;
+            font-size: 0.8rem;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+
+        .slot-option:hover { border-color: var(--gold); }
+        .slot-option.selected { border-color: var(--primary); background: #fef2f2; color: var(--primary); }
+
+        /* Button */
+        .btn {
+            width: 100%;
+            padding: 0.9rem;
+            border: none;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+
+        .btn-book {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: white;
+            margin-top: 0.5rem;
+        }
+
+        .btn-book:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(185,28,28,0.3); }
+        .btn-book:active { transform: translateY(0); }
+
+        .btn-delete {
+            background: none;
+            border: none;
+            color: var(--primary-light);
+            cursor: pointer;
+            padding: 0.4rem;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            width: auto;
+        }
+
+        .btn-delete:hover { background: #fef2f2; }
+
+        /* Booking List */
+        .booking-card {
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 1rem;
+            margin-bottom: 0.75rem;
+            display: flex;
+            align-items: flex-start;
+            gap: 0.75rem;
+            transition: all 0.2s;
+        }
+
+        .booking-card:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.06); }
+
+        .booking-date-badge {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: white;
+            border-radius: 12px;
+            padding: 0.5rem 0.6rem;
+            text-align: center;
+            min-width: 52px;
+            flex-shrink: 0;
+        }
+
+        .booking-date-badge .bday { font-size: 1.3rem; font-weight: 800; line-height: 1; }
+        .booking-date-badge .bmon { font-size: 0.6rem; text-transform: uppercase; letter-spacing: 1px; }
+
+        .booking-info { flex: 1; min-width: 0; }
+        .booking-name { font-weight: 700; font-size: 0.95rem; }
+        .booking-hall { font-size: 0.8rem; color: var(--primary); font-weight: 600; margin-top: 0.1rem; }
+        .booking-meta { font-size: 0.78rem; color: var(--text-light); margin-top: 0.2rem; }
+
+        .slot-badge {
+            display: inline-block;
+            padding: 0.15rem 0.5rem;
+            border-radius: 20px;
+            font-size: 0.65rem;
+            font-weight: 700;
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        /* Calendar */
+        .cal-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 0.75rem;
+        }
+
+        .cal-header button {
+            background: none;
+            border: 2px solid var(--border);
+            border-radius: 8px;
+            padding: 0.4rem 0.8rem;
+            cursor: pointer;
+            font-size: 1rem;
+        }
+
+        .cal-header button:hover { border-color: var(--primary); }
+        .cal-header span { font-weight: 700; font-size: 1rem; }
+
+        .calendar {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 2px;
+        }
+
+        .calendar th { padding: 0.4rem; font-size: 0.7rem; color: var(--text-light); text-transform: uppercase; }
+
+        .calendar td {
+            padding: 0.45rem;
+            text-align: center;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: all 0.15s;
+            position: relative;
+        }
+
+        .calendar td:hover { background: #fef2f2; }
+        .calendar td.today { background: var(--primary); color: white; font-weight: 700; border-radius: 50%; }
+        .calendar td.booked { background: #fde68a; color: #92400e; font-weight: 600; }
+        .calendar td.other { color: #d6d3d1; }
+
+        .cal-bookings { margin-top: 1rem; }
+        .cal-bookings h3 { font-size: 0.9rem; margin-bottom: 0.5rem; color: var(--text-light); }
+
+        /* Stats */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.75rem;
+            margin-bottom: 1rem;
+        }
+
+        .stat-box {
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 1rem;
+            text-align: center;
+        }
+
+        .stat-box .s-icon { font-size: 1.5rem; }
+        .stat-box .s-val { font-size: 1.8rem; font-weight: 800; color: var(--text); margin: 0.2rem 0; }
+        .stat-box .s-label { font-size: 0.7rem; color: var(--text-light); text-transform: uppercase; letter-spacing: 0.5px; }
+
+        /* Empty state */
+        .empty { text-align: center; padding: 3rem 1rem; color: var(--text-light); }
+        .empty .e-icon { font-size: 3rem; margin-bottom: 0.5rem; }
+
+        /* Toast */
+        .toast-wrap {
+            position: fixed;
+            bottom: 80px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 1000;
+        }
+
+        .toast {
+            padding: 0.75rem 1.5rem;
+            border-radius: 12px;
+            color: white;
+            font-weight: 600;
+            font-size: 0.85rem;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.2);
+            animation: toastIn 0.3s ease, toastOut 0.3s ease 2.7s;
+            white-space: nowrap;
+        }
+
+        .toast-success { background: var(--success); }
+        .toast-error { background: var(--primary); }
+
+        @keyframes toastIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes toastOut { from { opacity: 1; } to { opacity: 0; } }
+
+        /* Modal */
+        .modal-bg {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 200;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s;
+            padding: 1rem;
+        }
+
+        .modal-bg.show { opacity: 1; visibility: visible; }
+
+        .modal-box {
+            background: white;
+            border-radius: 20px;
+            padding: 1.5rem;
+            width: 100%;
+            max-width: 340px;
+            text-align: center;
+            transform: scale(0.9);
+            transition: transform 0.3s;
+        }
+
+        .modal-bg.show .modal-box { transform: scale(1); }
+        .modal-box h3 { margin-bottom: 0.5rem; }
+        .modal-box p { color: var(--text-light); font-size: 0.9rem; margin-bottom: 1.25rem; }
+
+        .modal-btns { display: flex; gap: 0.5rem; }
+
+        .modal-btns button {
+            flex: 1;
+            padding: 0.7rem;
+            border-radius: 10px;
+            font-weight: 700;
+            font-size: 0.9rem;
+            cursor: pointer;
+            border: 2px solid var(--border);
+            background: white;
+        }
+
+        .modal-btns .m-del { background: var(--primary); color: white; border-color: var(--primary); }
+
+        /* Loading */
+        .loading { text-align: center; padding: 2rem; color: var(--text-light); }
+
+        /* Connection status */
+        .status-bar {
+            text-align: center;
+            padding: 0.3rem;
+            font-size: 0.7rem;
+            font-weight: 600;
+        }
+
+        .status-online { background: #d1fae5; color: #065f46; }
+        .status-offline { background: #fee2e2; color: #991b1b; }
+
+        @media (min-width: 768px) {
+            .nav-tabs { max-width: 600px; margin: 0 auto; border-radius: 0 0 16px 16px; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="header">
+    <h1>&#128146; Marriage Hall Booking</h1>
+    <p>Book your special day</p>
+</div>
+
+<div id="statusBar" class="status-bar status-online">Connected</div>
+
+<div class="nav-tabs">
+    <button class="nav-tab active" onclick="showPage('book', this)"><span>&#128221;</span>Book</button>
+    <button class="nav-tab" onclick="showPage('list', this)"><span>&#128203;</span>Bookings</button>
+    <button class="nav-tab" onclick="showPage('calendar', this)"><span>&#128197;</span>Calendar</button>
+</div>
+
+<!-- BOOK PAGE -->
+<div class="page active" id="page-book">
+    <div class="card">
+        <div class="card-header">&#127981; Select Hall</div>
+        <div class="card-body">
+            <div class="hall-options" id="hallOptions">
+                <div class="loading">Loading halls...</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header">&#128221; Booking Details</div>
+        <div class="card-body">
+            <div class="form-group">
+                <label>Customer Name *</label>
+                <input type="text" id="fName" placeholder="Enter full name" autocomplete="name">
+            </div>
+            <div class="form-group">
+                <label>Phone Number *</label>
+                <input type="tel" id="fPhone" placeholder="+91 98765 43210" autocomplete="tel">
+            </div>
+            <div class="form-group">
+                <label>Event Date *</label>
+                <input type="date" id="fDate">
+            </div>
+            <div class="form-group">
+                <label>Time Slot</label>
+                <div class="slot-options">
+                    <div class="slot-option selected" onclick="selectSlot('Full Day', this)">Full Day</div>
+                    <div class="slot-option" onclick="selectSlot('Morning', this)">Morning</div>
+                    <div class="slot-option" onclick="selectSlot('Evening', this)">Evening</div>
+                </div>
+            </div>
+            <div class="form-group">
+                <label>Number of Guests</label>
+                <input type="number" id="fGuests" placeholder="Expected guests" min="1">
+            </div>
+            <div class="form-group">
+                <label>Notes (Optional)</label>
+                <textarea id="fNotes" placeholder="Any special requirements..."></textarea>
+            </div>
+            <button class="btn btn-book" onclick="submitBooking()" id="bookBtn">
+                &#10003; Book Now
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- BOOKINGS LIST PAGE -->
+<div class="page" id="page-list">
+    <div class="stats-grid">
+        <div class="stat-box">
+            <div class="s-icon">&#128197;</div>
+            <div class="s-val" id="sTotal">0</div>
+            <div class="s-label">Total Bookings</div>
+        </div>
+        <div class="stat-box">
+            <div class="s-icon">&#128198;</div>
+            <div class="s-val" id="sUpcoming">0</div>
+            <div class="s-label">Upcoming</div>
+        </div>
+    </div>
+    <div id="bookingsList">
+        <div class="loading">Loading bookings...</div>
+    </div>
+</div>
+
+<!-- CALENDAR PAGE -->
+<div class="page" id="page-calendar">
+    <div class="card">
+        <div class="card-body">
+            <div class="cal-header">
+                <button onclick="calNav(-1)">&#9664;</button>
+                <span id="calTitle"></span>
+                <button onclick="calNav(1)">&#9654;</button>
+            </div>
+            <table class="calendar" id="calTable"></table>
+            <div class="cal-bookings" id="calBookings"></div>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Modal -->
+<div class="modal-bg" id="delModal">
+    <div class="modal-box">
+        <h3>&#128465; Delete Booking?</h3>
+        <p>This booking will be permanently removed.</p>
+        <div class="modal-btns">
+            <button onclick="closeDelModal()">Cancel</button>
+            <button class="m-del" id="confirmDel">Delete</button>
+        </div>
+    </div>
+</div>
+
+<!-- Toast -->
+<div class="toast-wrap" id="toastWrap"></div>
+
+<script>
+    // ==================== STATE ====================
+    const API = '';
+    let halls = [];
+    let bookings = [];
+    let selectedHall = null;
+    let selectedSlot = 'Full Day';
+    let calMonth = new Date().getMonth();
+    let calYear = new Date().getFullYear();
+    let deleteId = null;
+
+    // ==================== INIT ====================
+    async function init() {
+        document.getElementById('fDate').valueAsDate = new Date();
+        await loadHalls();
+        await loadBookings();
+        renderCalendar();
+    }
+
+    // ==================== API CALLS ====================
+    async function loadHalls() {
+        try {
+            const res = await fetch(`${API}/api/halls`);
+            halls = await res.json();
+            renderHalls();
+            setStatus(true);
+        } catch (e) {
+            setStatus(false);
+            // Fallback halls for offline display
+            halls = [
+                { id: 1, name: 'Marriage Hall 1', capacity: 500, price_per_day: 25000 },
+                { id: 2, name: 'Marriage Hall 2', capacity: 300, price_per_day: 18000 }
+            ];
+            renderHalls();
+        }
+    }
+
+    async function loadBookings() {
+        try {
+            const res = await fetch(`${API}/api/bookings`);
+            bookings = await res.json();
+            renderBookings();
+            updateStats();
+            setStatus(true);
+        } catch (e) {
+            setStatus(false);
+        }
+    }
+
+    async function submitBooking() {
+        const name = document.getElementById('fName').value.trim();
+        const phone = document.getElementById('fPhone').value.trim();
+        const date = document.getElementById('fDate').value;
+        const guests = parseInt(document.getElementById('fGuests').value) || 0;
+        const notes = document.getElementById('fNotes').value.trim();
+
+        if (!selectedHall) return toast('Please select a hall', 'error');
+        if (!name) return toast('Please enter customer name', 'error');
+        if (!phone) return toast('Please enter phone number', 'error');
+        if (!date) return toast('Please select event date', 'error');
+
+        const btn = document.getElementById('bookBtn');
+        btn.disabled = true;
+        btn.textContent = 'Booking...';
+
+        try {
+            const res = await fetch(`${API}/api/bookings`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    hall_id: selectedHall,
+                    customer_name: name,
+                    phone, event_date: date,
+                    time_slot: selectedSlot,
+                    guests, notes
+                })
+            });
+
+            const data = await res.json();
+
+            if (!res.ok) {
+                toast(data.error || 'Booking failed', 'error');
+                return;
+            }
+
+            bookings.unshift(data);
+            renderBookings();
+            updateStats();
+            renderCalendar();
+            resetForm();
+            toast('Booking saved successfully!', 'success');
+        } catch (e) {
+            toast('Network error. Check your connection.', 'error');
+        } finally {
+            btn.disabled = false;
+            btn.innerHTML = '&#10003; Book Now';
+        }
+    }
+
+    async function deleteBooking() {
+        if (!deleteId) return;
+        try {
+            await fetch(`${API}/api/bookings/${deleteId}`, { method: 'DELETE' });
+            bookings = bookings.filter(b => b.id !== deleteId);
+            renderBookings();
+            updateStats();
+            renderCalendar();
+            toast('Booking deleted', 'success');
+        } catch (e) {
+            toast('Failed to delete', 'error');
+        }
+        closeDelModal();
+    }
+
+    // ==================== RENDERING ====================
+    function renderHalls() {
+        const el = document.getElementById('hallOptions');
+        el.innerHTML = halls.map(h => `
+            <div class="hall-option ${selectedHall === h.id ? 'selected' : ''}" onclick="pickHall(${h.id})">
+                <div class="h-icon">&#127981;</div>
+                <div class="h-name">${h.name}</div>
+                <div class="h-info">&#128101; ${h.capacity} guests</div>
+                <div class="h-price">&#8377;${Number(h.price_per_day).toLocaleString('en-IN')}/day</div>
+            </div>
+        `).join('');
+    }
+
+    function renderBookings() {
+        const el = document.getElementById('bookingsList');
+
+        if (bookings.length === 0) {
+            el.innerHTML = '<div class="empty"><div class="e-icon">&#128203;</div><p>No bookings yet</p></div>';
+            return;
+        }
+
+        el.innerHTML = bookings.map(b => {
+            const d = new Date(b.event_date);
+            const day = d.getDate();
+            const mon = d.toLocaleString('en', { month: 'short' });
+            const dateStr = d.toLocaleDateString('en-IN', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' });
+
+            return `
+                <div class="booking-card">
+                    <div class="booking-date-badge">
+                        <div class="bday">${day}</div>
+                        <div class="bmon">${mon}</div>
+                    </div>
+                    <div class="booking-info">
+                        <div class="booking-name">${b.customer_name}</div>
+                        <div class="booking-hall">${b.hall_name} &middot; <span class="slot-badge">${b.time_slot}</span></div>
+                        <div class="booking-meta">&#128222; ${b.phone} &middot; ${dateStr}${b.guests ? ' &middot; ' + b.guests + ' guests' : ''}</div>
+                        ${b.notes ? `<div class="booking-meta">&#128221; ${b.notes}</div>` : ''}
+                    </div>
+                    <button class="btn-delete" onclick="openDelModal(${b.id})" title="Delete">&#128465;</button>
+                </div>
+            `;
+        }).join('');
+    }
+
+    function renderCalendar() {
+        const table = document.getElementById('calTable');
+        const today = new Date();
+        const first = new Date(calYear, calMonth, 1);
+        const last = new Date(calYear, calMonth + 1, 0);
+        const startDay = first.getDay();
+
+        document.getElementById('calTitle').textContent =
+            first.toLocaleString('en', { month: 'long', year: 'numeric' });
+
+        // Find booked dates this month
+        const bookedDates = {};
+        bookings.forEach(b => {
+            const d = new Date(b.event_date);
+            if (d.getMonth() === calMonth && d.getFullYear() === calYear) {
+                const key = d.getDate();
+                if (!bookedDates[key]) bookedDates[key] = [];
+                bookedDates[key].push(b);
+            }
+        });
+
+        let html = '<tr><th>Su</th><th>Mo</th><th>Tu</th><th>We</th><th>Th</th><th>Fr</th><th>Sa</th></tr><tr>';
+
+        const prevLast = new Date(calYear, calMonth, 0).getDate();
+        for (let i = startDay - 1; i >= 0; i--) {
+            html += `<td class="other">${prevLast - i}</td>`;
+        }
+
+        for (let d = 1; d <= last.getDate(); d++) {
+            const isToday = d === today.getDate() && calMonth === today.getMonth() && calYear === today.getFullYear();
+            const isBooked = bookedDates[d];
+
+            let cls = '';
+            if (isToday) cls = 'today';
+            else if (isBooked) cls = 'booked';
+
+            html += `<td class="${cls}" onclick="showDayBookings(${d})">${d}</td>`;
+            if ((startDay + d) % 7 === 0 && d !== last.getDate()) html += '</tr><tr>';
+        }
+
+        const rem = (startDay + last.getDate()) % 7;
+        if (rem > 0) for (let i = 1; i <= 7 - rem; i++) html += `<td class="other">${i}</td>`;
+
+        html += '</tr>';
+        table.innerHTML = html;
+    }
+
+    function showDayBookings(day) {
+        const el = document.getElementById('calBookings');
+        const dayBookings = bookings.filter(b => {
+            const d = new Date(b.event_date);
+            return d.getDate() === day && d.getMonth() === calMonth && d.getFullYear() === calYear;
+        });
+
+        if (dayBookings.length === 0) {
+            el.innerHTML = `<h3>${day} ${new Date(calYear, calMonth).toLocaleString('en', { month: 'long' })} - No bookings</h3>`;
+            return;
+        }
+
+        el.innerHTML = `<h3>${day} ${new Date(calYear, calMonth).toLocaleString('en', { month: 'long' })} - ${dayBookings.length} booking(s)</h3>` +
+            dayBookings.map(b => `
+                <div class="booking-card">
+                    <div class="booking-info">
+                        <div class="booking-name">${b.customer_name}</div>
+                        <div class="booking-hall">${b.hall_name} &middot; <span class="slot-badge">${b.time_slot}</span></div>
+                        <div class="booking-meta">&#128222; ${b.phone}</div>
+                    </div>
+                </div>
+            `).join('');
+    }
+
+    function updateStats() {
+        const todayStr = new Date().toISOString().split('T')[0];
+        const upcoming = bookings.filter(b => b.event_date >= todayStr).length;
+        document.getElementById('sTotal').textContent = bookings.length;
+        document.getElementById('sUpcoming').textContent = upcoming;
+    }
+
+    // ==================== INTERACTIONS ====================
+    function pickHall(id) {
+        selectedHall = id;
+        renderHalls();
+    }
+
+    function selectSlot(slot, el) {
+        selectedSlot = slot;
+        document.querySelectorAll('.slot-option').forEach(s => s.classList.remove('selected'));
+        el.classList.add('selected');
+    }
+
+    function showPage(name, tab) {
+        document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+        document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+        document.getElementById('page-' + name).classList.add('active');
+        tab.classList.add('active');
+
+        if (name === 'list') loadBookings();
+        if (name === 'calendar') { loadBookings().then(() => renderCalendar()); }
+    }
+
+    function calNav(delta) {
+        calMonth += delta;
+        if (calMonth < 0) { calMonth = 11; calYear--; }
+        if (calMonth > 11) { calMonth = 0; calYear++; }
+        renderCalendar();
+    }
+
+    function resetForm() {
+        selectedHall = null;
+        document.getElementById('fName').value = '';
+        document.getElementById('fPhone').value = '';
+        document.getElementById('fDate').valueAsDate = new Date();
+        document.getElementById('fGuests').value = '';
+        document.getElementById('fNotes').value = '';
+        renderHalls();
+    }
+
+    function openDelModal(id) {
+        deleteId = id;
+        document.getElementById('delModal').classList.add('show');
+        document.getElementById('confirmDel').onclick = deleteBooking;
+    }
+
+    function closeDelModal() {
+        document.getElementById('delModal').classList.remove('show');
+        deleteId = null;
+    }
+
+    function setStatus(online) {
+        const el = document.getElementById('statusBar');
+        el.className = `status-bar ${online ? 'status-online' : 'status-offline'}`;
+        el.textContent = online ? 'Connected to Database' : 'Offline - Cannot save bookings';
+    }
+
+    function toast(msg, type) {
+        const wrap = document.getElementById('toastWrap');
+        const t = document.createElement('div');
+        t.className = `toast toast-${type}`;
+        t.textContent = msg;
+        wrap.appendChild(t);
+        setTimeout(() => t.remove(), 3000);
+    }
+
+    document.getElementById('delModal').addEventListener('click', function(e) {
+        if (e.target === this) closeDelModal();
+    });
+
+    // ==================== START ====================
+    init();
+</script>
+
+</body>
+</html>
