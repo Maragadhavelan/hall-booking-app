@@ -48,10 +48,14 @@ async function initDB() {
     if (parseInt(rows[0].count) === 0) {
       await pool.query(`
         INSERT INTO halls (name, capacity, price_per_day) VALUES
-        ('Marriage Hall 1', 500, 25000),
-        ('Marriage Hall 2', 300, 18000)
+        ('Rajambal Vekdhalam Thirumana Madapam', 500, 25000),
+        ('Karbaga Viyagar Thirumana Mandapam', 300, 18000)
       `);
       console.log('Default halls created');
+    } else {
+      // Update existing hall names
+      await pool.query(`UPDATE halls SET name = 'Rajambal Vekdhalam Thirumana Madapam' WHERE id = 1`);
+      await pool.query(`UPDATE halls SET name = 'Karbaga Viyagar Thirumana Mandapam' WHERE id = 2`);
     }
 
     console.log('Database initialized successfully');
@@ -151,6 +155,49 @@ app.get('/api/bookings/month/:year/:month', async (req, res) => {
       [year, month]
     );
     res.json(rows);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Get all booked dates for a specific hall (for disabling in date picker)
+app.get('/api/bookings/booked-dates/:hallId', async (req, res) => {
+  try {
+    const { rows } = await pool.query(
+      `SELECT event_date, time_slot FROM bookings WHERE hall_id = $1 AND event_date >= CURRENT_DATE ORDER BY event_date`,
+      [req.params.hallId]
+    );
+    res.json(rows);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Export bookings as CSV
+app.get('/api/export/csv', async (req, res) => {
+  try {
+    const { rows } = await pool.query(`
+      SELECT b.id, h.name as hall_name, b.customer_name, b.phone,
+             TO_CHAR(b.event_date, 'DD-MM-YYYY') as event_date,
+             b.time_slot, b.guests, b.notes,
+             TO_CHAR(b.created_at, 'DD-MM-YYYY HH24:MI') as booked_on
+      FROM bookings b
+      JOIN halls h ON b.hall_id = h.id
+      ORDER BY b.event_date DESC
+    `);
+
+    const headers = ['ID', 'Hall Name', 'Customer Name', 'Phone', 'Event Date', 'Time Slot', 'Guests', 'Notes', 'Booked On'];
+    const csvRows = [headers.join(',')];
+    rows.forEach(r => {
+      csvRows.push([
+        r.id, `"${r.hall_name}"`, `"${r.customer_name}"`, r.phone,
+        r.event_date, r.time_slot, r.guests, `"${r.notes || ''}"`, r.booked_on
+      ].join(','));
+    });
+
+    res.setHeader('Content-Type', 'text/csv');
+    res.setHeader('Content-Disposition', 'attachment; filename=bookings_report.csv');
+    res.send(csvRows.join('\n'));
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
